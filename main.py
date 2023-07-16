@@ -7,6 +7,9 @@ from functools import partial
 
 load_dotenv()
 paramiko.util.log_to_file("paramiko.log")
+today = date.today()
+date_format = today.strftime("%d-%m-%Y")
+print(date_format)
 
 
 def progress_callback(transferred, total, progress):
@@ -14,23 +17,20 @@ def progress_callback(transferred, total, progress):
 
 
 def download_from_server(host, port, username, password):
-    today = date.today()
-    date_format = today.strftime("%d-%m-%Y")
-
     transport = paramiko.Transport((host, port))
     transport.connect(None, username, password)
-
     sftp = paramiko.SFTPClient.from_transport(transport)
 
     if host != os.getenv('host2'):
         remote_filepath = f"backup-system_{date_format}.tar.gz"
-        local_filepath = f"C:/Users/alexi/Desktop/dossier vide/raspberry/{remote_filepath}"
+        local_filepath = f"/root/py-get-backup/backup/rpi/{remote_filepath}"
     elif host == os.getenv('host2'):
         remote_filepath = f"backup_{date_format}.tar.gz"
-        local_filepath = f"C:/Users/alexi/Desktop/dossier vide/dapp/{remote_filepath}"
+        local_filepath = f"/root/py-get-backup/backup/vps/{remote_filepath}"
+
+    print(f"Download {remote_filepath} to {local_filepath}")
 
     remote_file_size = sftp.stat(remote_filepath).st_size
-
     bar_format = 'Downloading: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}, {rate_fmt}{postfix}]'
 
     with tqdm(total=remote_file_size, unit='B', unit_scale=True, ncols=80, bar_format=bar_format) as progress:
